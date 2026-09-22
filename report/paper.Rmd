@@ -737,8 +737,9 @@ line, or with the rough mental version of doubling the split and adding a
 further fifth of it, removes that bias. The wide prediction intervals are as
 important as the slope: the halfway split fixes the field's average behaviour
 tightly but leaves an individual runner's finish uncertain by roughly
-`r fmt(fit_summary$sigma, 0)` minutes either side, so the projection should be
-treated as a central estimate rather than a forecast. That slower runners fade
+`r fmt(fit_summary$sigma, 0)` minutes on average and by about
+`r fmt(2 * fit_summary$sigma, 0)` minutes either side at the 95% level, so the
+projection should be treated as a central estimate rather than a forecast. That slower runners fade
 more is consistent with previous findings from other marathons
 [@march2011age; @santoslozano2014influence], and this analysis adds a single
 directly usable equation for a complete mass-participation field.
