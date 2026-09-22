@@ -476,10 +476,10 @@ handling used **dplyr** [@wickham2023dplyr] and **readr**
 [@wickham2024readr]; figures were produced with **ggplot2**
 [@wickham2016ggplot2] and assembled with **patchwork**
 [@pedersen2024patchwork]; robust standard errors and the Breusch--Pagan test
-came from **sandwich** [@zeileis2004sandwich] and **lmtest**
-[@zeileis2002lmtest]; and the report was generated with **knitr**
-[@xie2024knitr], **rmarkdown** [@xie2018rmarkdown], **bookdown**
-[@xie2024bookdown], and **kableExtra** [@zhu2024kableextra]. Models were fitted
+came from **sandwich** [@zeileis2020sandwich; @zeileis2004sandwich] and
+**lmtest** [@zeileis2002lmtest]; and the report was generated with **knitr**
+[@xie2023knitr], **rmarkdown** [@xie2018rmarkdown], **bookdown**
+[@xie2016bookdown], and **kableExtra** [@zhu2024kableextra]. Models were fitted
 with the `lm` function in R's built-in **stats** package.
 
 # Results {#results}
