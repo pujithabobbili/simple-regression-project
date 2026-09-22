@@ -1,0 +1,22 @@
+# Data are not redistributed in this repository. R/01-download-data.R
+# retrieves the raw file and R/02-prepare-data.R writes the analysis file.
+data/
+
+# R session files
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# knitr / rmarkdown render artifacts
+report/paper_files/
+report/paper_cache/
+*.log
+*.aux
+*.out
+*.toc
+*.synctex.gz
+
+# OS files
+.DS_Store
+Thumbs.db
