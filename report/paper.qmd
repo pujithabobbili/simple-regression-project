@@ -11,7 +11,7 @@ format:
     fontsize: 11pt
     number-sections: true
     toc: false
-    fig-pos: "H"
+    fig-pos: "htbp"
     include-in-header:
       text: |
         \usepackage{booktabs}
@@ -330,7 +330,7 @@ second half as the first.
 ```{r}
 #| label: fig-distributions
 #| fig-width: 6.6
-#| fig-height: 2.5
+#| fig-height: 2.3
 #| fig-cap: "Distributions of the two modeled variables and of the split ratio for 26,526 finishers. Half-marathon split (left) and net finishing time (center) are both right skewed. The split ratio (right, second-half time divided by half-marathon time) is centered just above the dashed even-pacing line at 1.0, showing that a slower second half was the norm: 89.0% of finishers ran a positive split. The horizontal axis of the right panel is restricted to 0.8--1.6 for legibility, which hides 0.15% of runners whose pacing was more extreme still; the most uneven runner took more than twice as long over the second half as over the first."
 p1 <- ggplot(run, aes(half_min)) +
   geom_histogram(bins = 50, fill = "grey35", colour = NA) +
@@ -361,7 +361,7 @@ fit is the question taken up in @sec-methods.
 ```{r}
 #| label: fig-relationship
 #| fig-width: 6.0
-#| fig-height: 3.6
+#| fig-height: 3.1
 #| fig-cap: "Net finishing time against half-marathon split for the 26,526 finishers analyzed, before any model is fitted. Each point is one runner, drawn with transparency so that darker regions hold more runners. The dashed line is even pacing, where the finish is exactly twice the halfway split; a runner above the line ran a slower second half than first. Most of the field lies above the line, and the vertical gap to it grows as splits lengthen, which is the pattern the regression in Section 3 is built to measure."
 ggplot(run, aes(half_min, finish_min)) +
   geom_point(alpha = 0.05, size = 0.35, colour = "grey25") +
@@ -372,20 +372,16 @@ ggplot(run, aes(half_min, finish_min)) +
 
 ## Additional and alternative data
 
-The published results contain richer pacing information than this file
-includes: the Boston Athletic Association records splits at 5 km intervals as
-well as at halfway, which would allow the shape of the slowdown to be traced
-rather than summarized by a single second-half figure. Results for other
-editions of the race are published in the same format, and other large
-marathons publish comparable files, so the analysis could be repeated across
-years and courses. Hourly weather observations for the course are available
-from the National Oceanic and Atmospheric Administration and could be matched
-to each runner's time on the course, which would help separate heat effects
-from pacing behavior. Qualifying times, which the results do not include,
-would give a measure of each runner's recent fitness and so distinguish a
-runner who paced badly from one who was simply having a poor day. None of these
-sources is needed for the question asked here, but each would support the
-extensions discussed in @sec-discussion.
+Four sources would extend what this file supports. The Boston Athletic
+Association also publishes 5 km splits, which would trace the shape of the
+slowdown rather than summarize it once. Other editions of the race, and other
+large marathons, publish results in the same format, so the analysis could be
+repeated across years and courses. Hourly weather observations from the
+National Oceanic and Atmospheric Administration could be matched to each
+runner's time on the course, separating heat effects from pacing. Qualifying
+times, absent here, would measure recent fitness and so distinguish a runner
+who paced badly from one having a poor day. None is needed for the question
+asked here; each supports an extension in @sec-discussion.
 
 # Methods {#sec-methods}
 
@@ -417,18 +413,11 @@ of the slope shrinks as both the number of runners and the spread of their
 halfway splits grow, and this field is large and widely spread on both counts,
 which is why the estimate reported below is so precise.
 
-For an individual runner with halfway split $x_0$, the model predicts
-$\hat{Y}_0 = \hat\beta_0 + \hat\beta_1 x_0$, and a 95% prediction interval for
-that runner's actual finishing time is
-
-$$\hat{Y}_0 \pm t_{0.975,\,n-2}\;\hat\sigma
-  \sqrt{1 + \frac{1}{n} + \frac{(x_0 - \bar{x})^2}
-                               {\sum_{i=1}^{n}(x_i - \bar{x})^2}}.$$
-
-The leading 1 under the square root is the individual runner's own deviation
-from the line, which is why a prediction interval for one runner is far wider
-than a confidence interval for the average runner at the same split, and why it
-barely narrows as the sample grows.
+The model predicts $\hat{Y}_0 = \hat\beta_0 + \hat\beta_1 x_0$ for a runner
+with halfway split $x_0$. A prediction interval for that one runner must also
+allow for how far an individual strays from the line, not just for uncertainty
+in the line itself, which is why it is far wider than a confidence interval for
+the average runner at the same split and barely narrows as the sample grows.
 
 A single explanatory variable is appropriate because the question is itself a
 one-variable question: it asks what a runner can infer at the halfway mat, when
@@ -454,12 +443,10 @@ $H_0: \beta_1 = 0$ is reported by software automatically but carries no
 information here, since finishing time cannot fail to increase with the halfway
 split.
 
-The same question can be posed by regressing second-half time on the halfway
-split. Because second-half time is $Y_i - x_i$, that model has slope
-$\beta_1 - 1$ and identical standard errors, so it tests the even-pacing
-benchmark of one with exactly the same $t$ statistic. The choice between the
-two framings is presentational, and I use finishing time as the response
-because it is the quantity a runner wants to predict.
+Regressing second-half time on the split instead would give slope
+$\beta_1 - 1$ and the same $t$ statistic, so the choice of response is
+presentational; I use finishing time because it is what a runner wants to
+predict.
 
 One consequence of this structure deserves emphasis. The response contains the
 explanatory variable by construction, since a finishing time is the halfway
@@ -523,7 +510,7 @@ right tail reflecting runners who faded badly.
 ```{r}
 #| label: fig-diagnostics
 #| fig-width: 6.6
-#| fig-height: 4.6
+#| fig-height: 4.1
 #| fig-cap: "Regression diagnostics for the fitted model. Top left: residuals against fitted values, flat on average (so a straight line is adequate) but fanning out as fitted times increase. Top right: normal quantile-quantile plot of standardized residuals, close to the reference line through the center but with heavy tails at both ends. Bottom: residual standard deviation within tenths of the half-marathon split, expressed relative to the fastest decile so that the two fits can be compared on one scale. On the original scale the spread grows 2.4-fold across the field, which is why the constant-variance assumption fails; on the log-log scale it grows only 1.4-fold, which is why that fit is used as a sensitivity check."
 aug <- diag$augmented
 
@@ -708,7 +695,7 @@ lengthen, which is the visual signature of a slope greater than two.
 ```{r}
 #| label: fig-scatter
 #| fig-width: 6.4
-#| fig-height: 4.0
+#| fig-height: 3.5
 #| fig-cap: "The raw relationship shown earlier, now with the fitted regression added. The solid line is finish = -14.53 + 2.218 x split; the dashed line is the even-pacing reference finish = 2 x split. The fitted line lies above the reference line throughout and diverges from it as splits lengthen, so the gap that was visible in the raw data is reproduced by a straight line with a slope above 2. Points above the dashed line are runners who slowed in the second half."
 ggplot(run, aes(half_min, finish_min)) +
   geom_point(alpha = 0.05, size = 0.35, colour = "grey25") +
@@ -869,20 +856,20 @@ starting faster causes a better finish, since runners who reach halfway quickly
 are fitter, and fitness rather than pace choice explains much of the
 association.
 
-The natural extensions follow from those limitations. Adding sex, age group,
-and their interactions with the halfway split would test whether the slowdown
-differs across runners in the way earlier work reports [@deaner2015men], at the
-cost of an equation a runner could no longer evaluate from the clock alone.
-Fitting the same model to several editions of the race, with a weather variable
-for each day, would separate heat effects from pacing behavior and would show
-whether the slope is a stable property of the field [@ely2008effect]. The 5 km
-splits published by the organizers would allow the slowdown to be traced
-through the race rather than summarized once, which is the natural way to study
-late-race collapse [@smyth2021how]. Quantile regression would model the spread
-directly instead of treating it as a nuisance, and would give runners
-prediction limits that widen appropriately with their split. Each of these
-would refine the estimate; none is likely to overturn the central finding, which
-is that a marathon field does not pace evenly, and that the shortfall of the
-doubling rule grows with the time on the clock at halfway.
+The natural extensions follow from those limitations. Adding sex and age group,
+interacted with the split, would test whether the slowdown differs across
+runners as earlier work reports [@deaner2015men], at the cost of an equation a
+runner could no longer evaluate from the clock. Fitting several editions of the
+race with a weather variable for each day would separate heat effects from
+pacing and show whether the slope is stable [@ely2008effect]. The organizers'
+5 km splits would trace the slowdown through the race rather than summarize it
+once, the natural way to study late-race collapse [@smyth2021how]. Quantile
+regression would model the spread directly and give prediction limits that
+widen with the split. Each would refine the estimate; none is likely to
+overturn the central finding, that a marathon field does not pace evenly and
+that the shortfall of the doubling rule grows with the time on the clock at
+halfway.
+
+\newpage
 
 # References {.unnumbered}
