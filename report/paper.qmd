@@ -209,8 +209,8 @@ are derived from them.
 The response variable is **net finishing time**, the elapsed time from the
 moment a runner crosses the starting mat to the moment they cross the finishing
 mat, recorded by a timing chip and converted here from seconds to minutes.
-Boston starts runners in waves and corrals, so the starting gun and a given
-runner's actual start can differ considerably: across all finishers the gun
+Boston starts runners in timed waves rather than all at once, so the starting
+gun and a given runner's actual start can differ considerably: across all finishers the gun
 time exceeds the net time by a median of
 `r fmt(median(all_finishers$gun_min - all_finishers$finish_min), 1)` minutes
 and by as much as
@@ -513,7 +513,8 @@ residual plot is roughly flat, so the straight-line form is adequate, but the ba
 residual standard deviation rises from
 `r fmt(min(spread_raw$resid_sd), 1)` minutes among the fastest tenth of the
 field to `r fmt(max(spread_raw$resid_sd), 1)` minutes among the slowest, a
-`r fmt(spread_ratio_raw, 1)`-fold increase, and the Breusch--Pagan test rejects
+`r fmt(spread_ratio_raw, 1)`-fold increase, and the Breusch--Pagan test, which
+checks formally whether residual spread is related to the fitted values, rejects
 constant variance decisively ($BP = `r fmt(diag$bp_test$statistic, 1)`$ on
 `r diag$bp_test$parameter` degree of freedom, $p < 0.001$). The quantile-quantile plot shows
 approximate normality through the center with heavy tails at both ends, the
@@ -585,8 +586,10 @@ unbiased but the usual standard errors are not trustworthy. I addressed this in
 two ways, which together form the validation step for the model.
 
 First, I recomputed the standard error of the slope using a
-heteroskedasticity-consistent (HC1) estimator [@zeileis2004sandwich], which
-does not assume constant variance. Second, I refitted the model with both
+heteroskedasticity-consistent (HC1) estimator [@zeileis2004sandwich]. Instead of
+assuming one common error variance, it builds the standard error from the size
+of each runner's own residual, so the noisier part of the range contributes the
+uncertainty it actually carries. Second, I refitted the model with both
 variables on the natural log scale,
 
 $$\log(Y_i) = \gamma_0 + \gamma_1 \log(x_i) + \eta_i,$$
@@ -608,11 +611,13 @@ Three extensions would change the analysis in predictable ways. Adding sex and
 age group, interacted with the halfway split, would let the slope differ across
 groups, but since men and women here slowed by almost the same proportion
 (@sec-field) it would sharpen the intercept more than the slope, and it would
-cost the equation its usability at the mat. A quadratic term or spline would
-relax the constant-rate assumption; the residual plot shows little curvature,
+cost the equation its usability at the mat. A quadratic term, or a spline that lets the
+line bend at a few chosen splits, would relax the constant-rate assumption; the residual plot shows little curvature,
 so fitted values would barely move, though extrapolation would become less
-stable. Weighted least squares or quantile regression would model the growing
-spread directly instead of correcting for it afterwards, leaving the slope
+stable. Weighted least squares, which gives noisier runners less
+influence on the fit, or quantile regression, which models chosen percentiles
+of finishing time rather than its mean, would handle the growing spread
+directly instead of correcting for it afterwards, leaving the slope
 largely intact but widening the prediction intervals for slower runners, which
 is where they are currently least accurate. @sec-discussion returns to these.
 
