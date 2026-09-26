@@ -73,7 +73,9 @@ simple-regression-project/
 │   ├── 02-prepare-data.R            Cleans and derives variables; writes data/processed/
 │   └── 03-fit-models.R              Model-fitting and diagnostic helper functions
 ├── report/
-│   ├── paper.Rmd                    Source of the report
+│   ├── paper.qmd                    Source of the report (Quarto)
+│   ├── paper.Rmd                    Previous R Markdown source, kept until
+│   │                                the Quarto render is confirmed
 │   ├── paper.pdf                    Rendered report (the submitted document)
 │   └── references.bib               BibTeX bibliography
 └── data/                            Created at run time; not tracked by git
@@ -97,9 +99,10 @@ shown in the structure above.
 ### Requirements
 
 R (version 4.3.3 was used) with the packages `dplyr`, `readr`, `ggplot2`,
-`patchwork`, `knitr`, `rmarkdown`, `bookdown`, `kableExtra`, `sandwich`, and
-`lmtest`. Rendering the report to PDF also requires a LaTeX installation, such
-as TinyTeX:
+`patchwork`, `knitr`, `kableExtra`, `sandwich`, and `lmtest`. The report is
+written in Quarto and is rendered from RStudio, or from the command line with
+`quarto render report/paper.qmd`. Rendering to PDF also requires a LaTeX
+installation, such as TinyTeX:
 
 ```r
 install.packages("tinytex")
