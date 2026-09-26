@@ -496,7 +496,7 @@ were deliberately retained: they are genuine race outcomes rather than
 recording errors, and removing them would bias the estimated slowdown toward
 zero.
 
-@fig-diagnostics collects the evidence behind those four judgements. The
+@fig-diagnostics collects the evidence behind those four judgments. The
 residual plot is roughly flat, so the straight-line form is adequate, but the band of residuals widens markedly from left to right. The
 residual standard deviation rises from
 `r fmt(min(spread_raw$resid_sd), 1)` minutes among the fastest tenth of the
