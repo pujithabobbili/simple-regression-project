@@ -5,4 +5,4 @@
 source(file.path("R", "01-download-data.R"))
 source(file.path("R", "02-prepare-data.R"))
 
-rmarkdown::render(file.path("report", "paper.Rmd"))
+system2("quarto", c("render", file.path("report", "paper.qmd")))

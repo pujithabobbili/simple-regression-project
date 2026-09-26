@@ -71,8 +71,6 @@ simple-regression-project/
 │   └── 03-fit-models.R              Model-fitting and diagnostic helper functions
 ├── report/
 │   ├── paper.qmd                    Source of the report (Quarto)
-│   ├── paper.Rmd                    Previous R Markdown source, kept until
-│   │                                the Quarto render is confirmed
 │   ├── paper.pdf                    Rendered report (the submitted document)
 │   └── references.bib               BibTeX bibliography
 └── data/                            Created at run time; not tracked by git
