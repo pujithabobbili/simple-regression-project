@@ -113,8 +113,8 @@ time with a residual standard deviation of about
 split lengthens, slower runners lose proportionally more time over the second
 half than faster runners do, and the familiar "double your halfway time" rule
 understates the finish for nearly nine runners in ten. A more accurate rule for
-this field is to double the halfway split and add roughly a further fifth of
-it.
+this field is to double the halfway split and add a minute for every five
+minutes the split runs over about 1:07.
 
 # Introduction
 
@@ -835,7 +835,8 @@ right for the fastest runners, understates the finish by about
 by a quarter of an hour or more for the slowest
 `r fmt(pct_over_15min, 0)`% of the field. Replacing it with the fitted
 line, or with the rough mental version of doubling the split and adding a
-further fifth of it, removes that bias. The wide prediction intervals are as
+minute for every five minutes the split runs over about 1:07, removes that
+bias. The wide prediction intervals are as
 important as the slope: the halfway split fixes the field's average behavior
 tightly but leaves an individual runner's finish uncertain by roughly
 `r fmt(fit_summary$sigma, 0)` minutes on average and by about
