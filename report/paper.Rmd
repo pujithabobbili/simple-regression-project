@@ -88,15 +88,16 @@ hms <- function(minutes) {
 
 # Abstract {-}
 
-Runners are routinely told to start a marathon conservatively, but the size of
-the penalty for a fast first half is rarely stated in terms a runner can use
-mid-race. Using official results for `r fmt(n_analysis, 0)` finishers of the
+Runners and spectators routinely project a marathon finishing time by doubling
+the time on the clock at halfway, but how far that rule is off, and for which
+runners, is rarely quantified for a whole field. Using official results for
+`r fmt(n_analysis, 0)` finishers of the
 2023 Boston Marathon, distributed through the SCORE Network Sports Data
 Repository [@fay2023boston], I fit a simple linear regression of net finishing
 time on half-marathon split time. Each additional minute at halfway is
-associated with `r fmt(b1, 2)` additional minutes at the finish (95% confidence
-interval `r fmt(slope_classical$conf_low, 2)` to
-`r fmt(slope_classical$conf_high, 2)`), which is reliably more than the two
+associated with `r fmt(b1, 3)` additional minutes at the finish (95% confidence
+interval `r fmt(slope_classical$conf_low, 3)` to
+`r fmt(slope_classical$conf_high, 3)`), which is reliably more than the two
 minutes that even pacing would imply, and the halfway split predicts finishing
 time with a residual standard deviation of about
 `r fmt(fit_summary$sigma, 1)` minutes. Because the gap widens as the halfway
@@ -115,10 +116,9 @@ The projection almost always used is simple doubling: a runner passing halfway
 in 1 hour 45 minutes is said to be "on pace" for 3 hours 30 minutes. That rule
 is exactly right only if a runner covers the second half in the same time as
 the first, and decades of race results suggest that most runners do not
-[@march2011age; @santoslozano2014influence]. What is less often quantified, in
-a form that can be applied at the mat, is how much the rule is wrong by, and
-whether the error is the same for a 2-hour 30-minute runner and a 5-hour
-runner.
+[@march2011age; @santoslozano2014influence]. What is less often quantified, in a
+form a runner can use at the mat, is by how much the rule errs, and whether it
+errs equally for a 2:30 runner and a 5:00 runner.
 
 Slowing over the second half of a marathon, known as positive splitting, has a
 well-documented physiological basis: muscle glycogen depletion, rising core
@@ -150,10 +150,10 @@ Marathon. The estimated slope is `r fmt(b1, 3)` rather than 2, a difference
 that is far larger than its standard error, so each extra minute taken to reach
 halfway is associated with about `r fmt(b1 - 1, 2)` extra minutes over the
 second half instead of the one minute even pacing would require. The halfway
-split explains almost all of the variation in finishing time, yet the remaining
-spread is wide enough in practical terms that a prediction for an individual
-runner carries an uncertainty of roughly `r fmt(2 * fit_summary$sigma, 0)`
-minutes in either direction. The rest of the paper is organized as follows.
+split explains almost all of the variation in finishing time, but the spread
+that remains is practically wide: a prediction for an individual runner carries
+an uncertainty of roughly `r fmt(2 * fit_summary$sigma, 0)` minutes in either
+direction. The rest of the paper is organized as follows.
 Section \@ref(data) describes the data set, its variables, and its limitations.
 Section \@ref(methods) sets out the regression model, the assumptions behind it,
 and the checks used to validate it. Section \@ref(results) reports the fitted
@@ -176,7 +176,8 @@ results, a point I return to below.
 ## Variables
 
 The file contains 15 columns recording each finisher's identity, age group,
-sex, finishing places, and times. Four are used here.
+sex, finishing places, and times. Five are used here, and two further variables
+are derived from them.
 
 The response variable is **net finishing time**, the elapsed time from the
 moment a runner crosses the starting mat to the moment they cross the finishing
@@ -209,8 +210,8 @@ the halfway split, because a marathon is the sum of its two halves.
 
 ## Missing data and field characteristics
 
-`r n_dropped` finishers (`r fmt(100 * n_dropped / n_finishers, 2)`% of the
-field) have no recorded half-marathon split, most likely because of a missed
+In all, `r n_dropped` finishers (`r fmt(100 * n_dropped / n_finishers, 2)`% of
+the field) have no recorded half-marathon split, most likely because of a missed
 chip read at the mat. Because the split is the explanatory variable, these
 runners cannot enter the model and are dropped, leaving `r fmt(n_analysis, 0)`
 runners. Their exclusion is unlikely to distort the results: their mean
@@ -229,38 +230,49 @@ to `r hms(max(run$finish_min))`. The median split ratio of
 `r fmt(100 * (median_ratio - 1), 1)`% slower than the first.
 
 ```{r summary-table}
-summary_rows <- function(data, label) {
-  data %>%
-    summarise(
-      Group = label,
-      n = n(),
-      `Half split` = median(half_min),
-      `Finish` = median(finish_min),
-      `Second half` = median(second_half_min),
-      `Split ratio` = median(split_ratio),
-      `Slower 2nd half (%)` = 100 * mean(second_half_min > half_min)
-    )
+describe_variable <- function(values, label, digits) {
+  quartiles <- quantile(values, c(0.25, 0.75))
+  data.frame(
+    Variable = label,
+    Mean = mean(values),
+    SD = stats::sd(values),
+    Min = min(values),
+    Q1 = quartiles[[1]],
+    Median = median(values),
+    Q3 = quartiles[[2]],
+    Max = max(values)
+  ) %>%
+    mutate(across(where(is.numeric), ~ formatC(.x, format = "f", digits = digits)))
 }
 
 summary_table <- bind_rows(
-  summary_rows(run, "All finishers"),
-  summary_rows(filter(run, sex == "Women"), "Women"),
-  summary_rows(filter(run, sex == "Men"), "Men")
-) %>%
-  mutate(
-    n = formatC(n, format = "d", big.mark = ","),
-    across(c(`Half split`, `Finish`, `Second half`), ~ formatC(.x, format = "f", digits = 1)),
-    `Split ratio` = formatC(`Split ratio`, format = "f", digits = 3),
-    `Slower 2nd half (%)` = formatC(`Slower 2nd half (%)`, format = "f", digits = 1)
-  )
+  describe_variable(run$half_min, "Half-marathon split (min)", 1),
+  describe_variable(run$finish_min, "Net finishing time (min)", 1),
+  describe_variable(run$second_half_min, "Second-half time (min)", 1),
+  describe_variable(run$split_ratio, "Split ratio (unitless)", 3)
+)
 
 kable(
-  summary_table,
-  booktabs = TRUE, align = c("l", "r", "r", "r", "r", "r", "r"),
-  caption = "Median times (in minutes) and pacing measures for the 26,526 finishers of the 2023 Boston Marathon with a recorded half-marathon split, for the whole field and separately by sex. The split ratio is second-half time divided by half-marathon split; a value above 1 indicates a slower second half. The final column gives the percentage of runners in each group whose second half was slower than their first. Women were slower overall than men in this field but slowed by a similar proportion."
+  summary_table, booktabs = TRUE, row.names = FALSE,
+  align = c("l", rep("r", 7)),
+  caption = "Summary statistics for the four analysis variables, across all 26,526 finishers of the 2023 Boston Marathon who have a recorded half-marathon split. Times are in minutes; the split ratio is second-half time divided by half-marathon split and is unitless. All three time variables are right skewed, with means above their medians and maxima far above the third quartile, which is why the field's slowest runners dominate the upper tail. The split ratio has a median of 1.058, so the typical finisher took about 6 percent longer over the second half than the first, and its minimum below 1 shows that a minority ran the second half faster."
 ) %>%
-  kable_styling(latex_options = c("hold_position"), font_size = 9)
+  kable_styling(latex_options = c("hold_position"), font_size = 8)
 ```
+
+Pacing was similar for women and men even though their finishing times were
+not. Median finishing time was `r hms(median(run$finish_min[run$sex == "Women"]))`
+for the `r fmt(sum(run$sex == "Women"), 0)` women and
+`r hms(median(run$finish_min[run$sex == "Men"]))` for the
+`r fmt(sum(run$sex == "Men"), 0)` men, yet the median split ratio was
+`r fmt(median(run$split_ratio), 3)` in both groups, and the share running a
+slower second half was
+`r fmt(100 * mean(run$second_half_min[run$sex == "Women"] > run$half_min[run$sex == "Women"]), 1)`%
+and
+`r fmt(100 * mean(run$second_half_min[run$sex == "Men"] > run$half_min[run$sex == "Men"]), 1)`%
+respectively. Sex is therefore not a strong candidate for explaining the
+pacing pattern in this field, which supports treating the halfway split as the
+single explanatory variable in Section \@ref(methods).
 
 Two features of the field shape how far the results travel. First, Boston is
 not an open race: most entrants qualify by running a time standard at an
@@ -271,17 +283,17 @@ milder than it would be in an open field. Second, every runner in these data
 raced the same course on the same day, and ambient temperature is known to
 affect how much runners slow, with slower runners most affected
 [@ely2008effect]. Because conditions do not vary within the data set, their
-effect cannot be separated from pacing behaviour; whatever the weather on the
+effect cannot be separated from pacing behavior; whatever the weather on the
 day contributed is absorbed into the estimated relationship.
 
-Figure \@ref(fig:distributions) shows the distributions of the two modelled
+Figure \@ref(fig:distributions) shows the distributions of the two modeled
 variables and of the split ratio. Both time distributions are right skewed,
-with a long tail of slower finishers. The split ratio is centred a little above
+with a long tail of slower finishers. The split ratio is centered a little above
 one and has a pronounced right tail: `r fmt(pct_positive, 1)`% of finishers ran
 a slower second half, and a small group took more than twice as long over the
 second half as the first.
 
-```{r distributions, fig.width = 6.6, fig.height = 2.5, fig.cap = "Distributions of the two modelled variables and of the split ratio for 26,526 finishers. Half-marathon split (left) and net finishing time (centre) are both right skewed. The split ratio (right, second-half time divided by half-marathon time) is centred just above the dashed even-pacing line at 1.0, showing that a slower second half was the norm: 89.0% of finishers ran a positive split. The horizontal axis of the right panel is restricted to 0.8--1.6 for legibility, which hides 0.15% of runners whose pacing was more extreme still; the most uneven runner took more than twice as long over the second half as over the first."}
+```{r distributions, fig.width = 6.6, fig.height = 2.5, fig.cap = "Distributions of the two modeled variables and of the split ratio for 26,526 finishers. Half-marathon split (left) and net finishing time (center) are both right skewed. The split ratio (right, second-half time divided by half-marathon time) is centered just above the dashed even-pacing line at 1.0, showing that a slower second half was the norm: 89.0% of finishers ran a positive split. The horizontal axis of the right panel is restricted to 0.8--1.6 for legibility, which hides 0.15% of runners whose pacing was more extreme still; the most uneven runner took more than twice as long over the second half as over the first."}
 p1 <- ggplot(run, aes(half_min)) +
   geom_histogram(bins = 50, fill = "grey35", colour = NA) +
   labs(x = "Half-marathon split (min)", y = "Runners")
@@ -310,7 +322,7 @@ marathons publish comparable files, so the analysis could be repeated across
 years and courses. Hourly weather observations for the course are available
 from the National Oceanic and Atmospheric Administration and could be matched
 to each runner's time on the course, which would help separate heat effects
-from pacing behaviour. Qualifying times, which the results do not include,
+from pacing behavior. Qualifying times, which the results do not include,
 would give a measure of each runner's recent fitness and so distinguish a
 runner who paced badly from one who was simply having a poor day. None of these
 sources is needed for the question asked here, but each would support the
@@ -402,8 +414,8 @@ its width, the practical risk is limited, but the assumption cannot be verified
 from the results file alone.
 
 **Constant variance.** Residual spread should not change with the fitted value.
-It plainly does here, so this assumption fails; the response is described
-below.
+It plainly does here, so this assumption fails; Section 3.4 sets out how I
+handle it.
 
 **Normality.** The errors are assumed normally distributed. A normal
 quantile-quantile plot shows heavy tails, and the residuals are right skewed.
@@ -411,7 +423,7 @@ For inference about $\beta_1$ this matters little, because with tens of
 thousands of observations the sampling distribution of the slope is
 approximately normal regardless. It matters more for prediction intervals for
 an individual runner, which rely on the shape of the error distribution rather
-than on large-sample behaviour, so those intervals are reported as
+than on large-sample behavior, so those intervals are reported as
 approximations.
 
 Influence was assessed with Cook's distance, which measures how much the fitted
@@ -531,8 +543,8 @@ results. The 95% confidence interval for the slope,
 The intercept of `r fmt(b0, 2)` minutes has no physical meaning on its own: a
 halfway split of zero minutes is impossible, and the observed splits range from
 `r fmt(min(run$half_min), 1)` to `r fmt(max(run$half_min), 1)` minutes, so a
-split of zero is far outside the data. Its role is to position the line over the
-range where runners actually are. Its negative value is what allows a line with
+split of zero is far outside the data. Its only role is to place the line
+correctly over the range of splits that runners actually record. Its negative value is what allows a line with
 a slope steeper than two to pass through the middle of a field in which typical
 finishing times are close to twice the halfway split.
 
@@ -617,10 +629,10 @@ rule works. For the median finisher, who reached halfway in
 hour only for the slowest `r fmt(pct_over_15min, 0)`% of the field. The
 prediction intervals,
 however, are wide: about `r fmt(diff(pred_fit[1, c("lwr", "upr")]), 0)` minutes
-from bottom to top. The regression describes the average behaviour of the field
+from bottom to top. The regression describes the average behavior of the field
 accurately while leaving a great deal of individual variation unexplained,
 which is what one would expect given that the second half of a marathon depends
-on training, fuelling, heat tolerance, and luck that the halfway clock cannot
+on training, fueling, heat tolerance, and luck that the halfway clock cannot
 observe.
 
 The descriptive pacing figures agree with the model. `r fmt(pct_positive, 1)`%
@@ -637,10 +649,10 @@ residual standard deviation rises from
 field to `r fmt(max(spread_raw$resid_sd), 1)` minutes among the slowest, a
 `r fmt(spread_ratio_raw, 1)`-fold increase, and the Breusch--Pagan test rejects
 constant variance decisively ($p < 0.001$). The quantile-quantile plot shows
-approximate normality through the centre with heavy tails at both ends, the
+approximate normality through the center with heavy tails at both ends, the
 right tail reflecting runners who faded badly.
 
-```{r diagnostics, fig.width = 6.6, fig.height = 4.6, fig.cap = "Regression diagnostics for the fitted model. Top left: residuals against fitted values, flat on average (so a straight line is adequate) but fanning out as fitted times increase. Top right: normal quantile-quantile plot of standardised residuals, close to the reference line through the centre but with heavy tails at both ends. Bottom: residual standard deviation within tenths of the half-marathon split, expressed relative to the fastest decile so that the two fits can be compared on one scale. On the original scale the spread grows 2.4-fold across the field, which is why the constant-variance assumption fails; on the log-log scale it grows only 1.4-fold, which is why that fit is used as a sensitivity check."}
+```{r diagnostics, fig.width = 6.6, fig.height = 4.6, fig.cap = "Regression diagnostics for the fitted model. Top left: residuals against fitted values, flat on average (so a straight line is adequate) but fanning out as fitted times increase. Top right: normal quantile-quantile plot of standardised residuals, close to the reference line through the center but with heavy tails at both ends. Bottom: residual standard deviation within tenths of the half-marathon split, expressed relative to the fastest decile so that the two fits can be compared on one scale. On the original scale the spread grows 2.4-fold across the field, which is why the constant-variance assumption fails; on the log-log scale it grows only 1.4-fold, which is why that fit is used as a sensitivity check."}
 aug <- diag$augmented
 
 d1 <- ggplot(aug, aes(fitted, resid)) +
@@ -691,7 +703,7 @@ elasticity is `r fmt(coef(log_model)[[2]], 3)`, again above the even-pacing
 benchmark of one ($t = `r fmt(log_slope$t_statistic, 1)`$), and the residual
 spread across deciles rises by a factor of only
 `r fmt(spread_ratio_log, 1)` rather than `r fmt(spread_ratio_raw, 1)`, so the
-transformation does most of the work of stabilising the variance. Both versions
+transformation does most of the work of stabilizing the variance. Both versions
 of the model say the same thing: runners who reach halfway later give up
 proportionally more time in the second half.
 
@@ -735,7 +747,7 @@ by a quarter of an hour or more for the slowest
 `r fmt(pct_over_15min, 0)`% of the field. Replacing it with the fitted
 line, or with the rough mental version of doubling the split and adding a
 further fifth of it, removes that bias. The wide prediction intervals are as
-important as the slope: the halfway split fixes the field's average behaviour
+important as the slope: the halfway split fixes the field's average behavior
 tightly but leaves an individual runner's finish uncertain by roughly
 `r fmt(fit_summary$sigma, 0)` minutes on average and by about
 `r fmt(2 * fit_summary$sigma, 0)` minutes either side at the 95% level, so the
@@ -751,8 +763,8 @@ average slowdown in the starting field is steeper than the estimate here: the
 result is a lower bound on fading. The analysis covers one race on one day, and
 Boston's qualifying standards make its field faster and more experienced than an
 open marathon, so the numerical slope should not be transferred to a different
-race without refitting. Weather on the day is baked into the estimate and
-cannot be separated from it. The constant-variance assumption fails outright and
+race without refitting. Conditions on the day are absorbed into the estimate
+and cannot be separated from it. The constant-variance assumption fails outright and
 the residuals are heavy tailed; robust standard errors and a log-log refit leave
 the conclusion intact, but the prediction intervals remain approximate and are
 probably too narrow for the slowest runners and too wide for the fastest.
@@ -767,7 +779,7 @@ and their interactions with the halfway split would test whether the slowdown
 differs across runners in the way earlier work reports [@deaner2015men], at the
 cost of an equation a runner could no longer evaluate from the clock alone.
 Fitting the same model to several editions of the race, with a weather variable
-for each day, would separate heat effects from pacing behaviour and would show
+for each day, would separate heat effects from pacing behavior and would show
 whether the slope is a stable property of the field [@ely2008effect]. The 5 km
 splits published by the organizers would allow the slowdown to be traced
 through the race rather than summarized once, which is the natural way to study
