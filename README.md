@@ -48,17 +48,14 @@ retrieves the file from the source at run time, and `data/` is listed in
 
 ## Use of external resources
 
-External resources, including large language models, were used in preparing
-this project. A large language model (Claude) was used to help refine the
-research question, draft and revise the prose of the report, write and debug
-the R code, build and format the tables and figures, organize the repository,
-and proofread the text. The Boston Marathon pacing literature cited in the
-report was located through ordinary literature searching and read by the
-author; the statistical choices, the interpretation of the results, and the
-final text are the author's own, and all model output, quantitative claims, and
-citations were checked against the fitted model and the published sources
-before submission. No other external tools or collaborators contributed to the
-project. Software used in the analysis is cited in the report's reference list.
+A large language model (Claude) was used in preparing this project, which the
+course permits for all aspects of the work. It assisted with refining the
+research question, writing and debugging the R code, drafting and revising the
+report, formatting the tables and figures, and proofreading. Every quantitative
+claim in the report is computed directly from the fitted model rather than
+transcribed, and the references were checked against the published records. I
+am responsible for the accuracy, interpretation, and final presentation of the
+submitted work. No other external tools or collaborators contributed.
 
 ## Repository structure
 
