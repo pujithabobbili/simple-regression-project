@@ -46,6 +46,20 @@ repository, in line with the project requirements. `R/01-download-data.R`
 retrieves the file from the source at run time, and `data/` is listed in
 `.gitignore`.
 
+## Use of external resources
+
+External resources, including large language models, were used in preparing
+this project. A large language model (Claude) was used to help refine the
+research question, draft and revise the prose of the report, write and debug
+the R code, build and format the tables and figures, organize the repository,
+and proofread the text. The Boston Marathon pacing literature cited in the
+report was located through ordinary literature searching and read by the
+author; the statistical choices, the interpretation of the results, and the
+final text are the author's own, and all model output, quantitative claims, and
+citations were checked against the fitted model and the published sources
+before submission. No other external tools or collaborators contributed to the
+project. Software used in the analysis is cited in the report's reference list.
+
 ## Repository structure
 
 ```
