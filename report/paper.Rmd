@@ -145,8 +145,11 @@ halfway split. Testing the fitted slope against two, rather than against zero,
 turns a routine regression into a direct test of whether a mass-participation
 field paces evenly.
 
-This paper fits that model to the full finishing field of the 2023 Boston
-Marathon. The estimated slope is `r fmt(b1, 3)` rather than 2, a difference
+This paper therefore asks two linked questions of the full finishing field of
+the 2023 Boston Marathon: how accurately does a runner's half-marathon split
+predict their net finishing time, and does the fitted relationship depart from
+the two minutes per minute that even pacing implies? The estimated slope is
+`r fmt(b1, 3)` rather than 2, a difference
 that is far larger than its standard error, so each extra minute taken to reach
 halfway is associated with about `r fmt(b1 - 1, 2)` extra minutes over the
 second half instead of the one minute even pacing would require. The halfway
@@ -173,6 +176,19 @@ the complete finishing field of `r fmt(n_finishers, 0)` runners rather than a
 sample from it. Runners who started but did not finish never appear in the
 results, a point I return to below.
 
+The times are not survey responses or hand-recorded observations: each runner
+carries a timing chip that is detected by mats laid across the course, and the
+organizer publishes the resulting table after the race. That collection process
+shapes what the data can and cannot say. Times are recorded for every runner
+who crosses a mat, so there is no sampling variability in the usual sense and
+no non-response; the population of finishers is observed in full. What the
+process cannot record is anything happening between mats, so a runner who
+stopped for ten minutes at 30 km and one who slowed evenly throughout appear
+identical if their halfway and finishing times agree. Entry to the race is also
+selective. Most runners qualify by posting a time standard at an earlier
+marathon, and the rest enter through charity programs, so the field is not a
+random draw from marathon runners in general.
+
 ## Variables
 
 The file contains 15 columns recording each finisher's identity, age group,
@@ -197,9 +213,15 @@ recorded at the halfway timing mat, also converted to minutes. From these two I
 derive **second-half time**, the difference between the finishing time and the
 split, and the **split ratio**, the second-half time divided by the split. A
 ratio above one means the runner covered the second half more slowly than the
-first. **Sex** (recorded in the source file as `M` or `W`) and **age group**
-(ten bands from 18--39 to 80+) are used for description only; they are not part
-of the fitted model.
+first. **Sex** is recorded in the source file as `M` or `W`, and
+`r fmt(100 * mean(run$sex == "Women"), 1)`% of the analyzed field is recorded as
+women. **Age group** is recorded as one of ten bands rather than an exact age,
+running from 18--39 through 80+; the largest band is 18--39, holding
+`r fmt(100 * mean(run$age_group == "18-39"), 1)`% of finishers, so
+`r fmt(100 * mean(run$age_group != "18-39"), 1)`% of this field are masters
+runners aged 40 or over. Because age arrives banded, it could not serve as a
+continuous predictor without assigning an arbitrary value to each band. Both
+variables are used for description only and are not part of the fitted model.
 
 Both times come from chip timing, which is accurate to about one second. That
 error is negligible next to a standard deviation of
@@ -300,13 +322,13 @@ p1 <- ggplot(run, aes(half_min)) +
 
 p2 <- ggplot(run, aes(finish_min)) +
   geom_histogram(bins = 50, fill = "grey35", colour = NA) +
-  labs(x = "Net finishing time (min)", y = NULL)
+  labs(x = "Net finishing time (min)", y = "Runners")
 
 p3 <- ggplot(run, aes(split_ratio)) +
   geom_histogram(binwidth = 0.02, fill = "grey35", colour = NA) +
   geom_vline(xintercept = 1, linetype = "dashed", colour = "#B2182B", linewidth = 0.5) +
   coord_cartesian(xlim = c(0.8, 1.6)) +
-  labs(x = "Split ratio (2nd half / 1st half)", y = NULL)
+  labs(x = "Split ratio (2nd half / 1st half)", y = "Runners")
 
 p1 + p2 + p3
 ```
@@ -352,10 +374,42 @@ one another and drawn from the same normal distribution.
 The parameters are estimated by ordinary least squares, which chooses the
 values $\hat\beta_0$ and $\hat\beta_1$ minimizing the sum of squared vertical
 distances between the observed finishing times and the fitted line,
-$\sum_{i=1}^{n} (Y_i - \beta_0 - \beta_1 x_i)^2$. The residual standard
-deviation $\hat\sigma$ estimates the typical size of those distances and is
-reported in minutes, which makes it directly readable as the precision of a
-prediction.
+$\sum_{i=1}^{n} (Y_i - \beta_0 - \beta_1 x_i)^2$. Writing $\bar{x}$ and
+$\bar{Y}$ for the sample means, the minimizing values are
+
+$$\hat\beta_1 = \frac{\sum_{i=1}^{n}(x_i - \bar{x})(Y_i - \bar{Y})}
+                     {\sum_{i=1}^{n}(x_i - \bar{x})^2},
+  \qquad
+  \hat\beta_0 = \bar{Y} - \hat\beta_1 \bar{x}.$$
+
+The residual for runner $i$ is $e_i = Y_i - \hat\beta_0 - \hat\beta_1 x_i$, and
+the residual standard deviation
+$\hat\sigma = \sqrt{\sum_{i=1}^{n} e_i^2 / (n - 2)}$ estimates $\sigma$. Two
+degrees of freedom are subtracted because the intercept and slope have been
+estimated from the same data. Reporting $\hat\sigma$ in minutes makes it
+directly readable as the precision of a prediction. The standard error of the
+slope,
+
+$$SE(\hat\beta_1) = \frac{\hat\sigma}{\sqrt{\sum_{i=1}^{n}(x_i - \bar{x})^2}},$$
+
+shows why the estimate here is so precise: the denominator grows with both the
+number of runners and the spread of their halfway splits, and this field is
+large and widely spread on both counts. Under the assumptions listed in Section
+\@ref(assumptions-and-diagnostics), least squares is unbiased for $\beta_0$ and
+$\beta_1$ and has the smallest variance among linear unbiased estimators.
+
+For an individual runner with halfway split $x_0$, the model predicts
+$\hat{Y}_0 = \hat\beta_0 + \hat\beta_1 x_0$, and a 95% prediction interval for
+that runner's actual finishing time is
+
+$$\hat{Y}_0 \pm t_{0.975,\,n-2}\;\hat\sigma
+  \sqrt{1 + \frac{1}{n} + \frac{(x_0 - \bar{x})^2}
+                               {\sum_{i=1}^{n}(x_i - \bar{x})^2}}.$$
+
+The leading 1 under the square root is the individual runner's own deviation
+from the line, which is why a prediction interval for one runner is far wider
+than a confidence interval for the average runner at the same split, and why it
+barely narrows as the sample grows.
 
 A single explanatory variable is appropriate because the question is itself a
 one-variable question: it asks what a runner can infer at the halfway mat, when
@@ -435,12 +489,23 @@ were deliberately retained: they are genuine race outcomes rather than
 recording errors, and removing them would bias the estimated slowdown toward
 zero.
 
-## Handling the failure of constant variance
+## Model selection and validation
 
-Because residual spread grows with the halfway split, the least squares
-estimates remain unbiased but the usual standard errors are not trustworthy. I
-addressed this in two ways, which together serve as the validation step for the
-model.
+Two specifications were considered: the model above, fitted on the original
+minute scale, and the same regression with both variables on the natural log
+scale. I selected the original scale as the primary model on interpretability
+grounds. The even-pacing benchmark is exactly 2 on that scale, so the
+hypothesis test answers the research question directly, and the slope and
+residual standard deviation are both in minutes, which is the unit a runner
+reasons in. The log-log fit is retained not as a rival but as a check: if it
+reversed the conclusion, the primary model could not be trusted. Choosing
+between them on fit alone would be the wrong criterion, because the two have
+different response variables and their $R^2$ values are not comparable.
+
+That choice leaves the constant-variance failure to deal with. Because residual
+spread grows with the halfway split, the least squares estimates remain
+unbiased but the usual standard errors are not trustworthy. I addressed this in
+two ways, which together form the validation step for the model.
 
 First, I recomputed the standard error of the slope using a
 heteroskedasticity-consistent (HC1) estimator [@zeileis2004sandwich], which
@@ -635,8 +700,8 @@ which is what one would expect given that the second half of a marathon depends
 on training, fueling, heat tolerance, and luck that the halfway clock cannot
 observe.
 
-The descriptive pacing figures agree with the model. `r fmt(pct_positive, 1)`%
-of finishers ran a slower second half than first, and the median runner's second
+The descriptive pacing figures agree with the model: a slower second half was
+run by `r fmt(pct_positive, 1)`% of finishers, and the median runner's second
 half was `r fmt(100 * (median_ratio - 1), 1)`% slower than their first.
 
 ## Model checking
@@ -648,11 +713,12 @@ residual standard deviation rises from
 `r fmt(min(spread_raw$resid_sd), 1)` minutes among the fastest tenth of the
 field to `r fmt(max(spread_raw$resid_sd), 1)` minutes among the slowest, a
 `r fmt(spread_ratio_raw, 1)`-fold increase, and the Breusch--Pagan test rejects
-constant variance decisively ($p < 0.001$). The quantile-quantile plot shows
+constant variance decisively ($BP = `r fmt(diag$bp_test$statistic, 1)`$ on
+`r diag$bp_test$parameter` degree of freedom, $p < 0.001$). The quantile-quantile plot shows
 approximate normality through the center with heavy tails at both ends, the
 right tail reflecting runners who faded badly.
 
-```{r diagnostics, fig.width = 6.6, fig.height = 4.6, fig.cap = "Regression diagnostics for the fitted model. Top left: residuals against fitted values, flat on average (so a straight line is adequate) but fanning out as fitted times increase. Top right: normal quantile-quantile plot of standardised residuals, close to the reference line through the center but with heavy tails at both ends. Bottom: residual standard deviation within tenths of the half-marathon split, expressed relative to the fastest decile so that the two fits can be compared on one scale. On the original scale the spread grows 2.4-fold across the field, which is why the constant-variance assumption fails; on the log-log scale it grows only 1.4-fold, which is why that fit is used as a sensitivity check."}
+```{r diagnostics, fig.width = 6.6, fig.height = 4.6, fig.cap = "Regression diagnostics for the fitted model. Top left: residuals against fitted values, flat on average (so a straight line is adequate) but fanning out as fitted times increase. Top right: normal quantile-quantile plot of standardized residuals, close to the reference line through the center but with heavy tails at both ends. Bottom: residual standard deviation within tenths of the half-marathon split, expressed relative to the fastest decile so that the two fits can be compared on one scale. On the original scale the spread grows 2.4-fold across the field, which is why the constant-variance assumption fails; on the log-log scale it grows only 1.4-fold, which is why that fit is used as a sensitivity check."}
 aug <- diag$augmented
 
 d1 <- ggplot(aug, aes(fitted, resid)) +
@@ -665,7 +731,7 @@ qq <- data.frame(sample = aug$std_resid)
 d2 <- ggplot(qq, aes(sample = sample)) +
   stat_qq(alpha = 0.06, size = 0.3, colour = "grey25") +
   stat_qq_line(colour = "#B2182B", linewidth = 0.5) +
-  labs(x = "Theoretical quantile", y = "Standardised residual",
+  labs(x = "Theoretical quantile", y = "Standardized residual",
        title = "Normal Q-Q")
 
 spread_compare <- bind_rows(
