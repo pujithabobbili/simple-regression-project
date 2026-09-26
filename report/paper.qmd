@@ -7,8 +7,8 @@ format:
   pdf:
     pdf-engine: pdflatex
     documentclass: article
-    geometry: margin=1in
-    fontsize: 11pt
+    geometry: margin=0.9in
+    fontsize: 10pt
     number-sections: true
     toc: false
     fig-pos: "htbp"
@@ -17,7 +17,8 @@ format:
         \usepackage{booktabs}
         \usepackage{float}
         \usepackage{caption}
-        \captionsetup[figure]{skip=6pt}
+        \captionsetup{font=small}
+        \captionsetup[figure]{skip=5pt}
 bibliography: references.bib
 link-citations: true
 ---
