@@ -23,6 +23,14 @@ format:
         \renewcommand{\bottomfraction}{0.8}
         \renewcommand{\textfraction}{0.1}
         \renewcommand{\floatpagefraction}{0.8}
+        % Start a new page if fewer than #1 lines remain (as in needspace).
+        \makeatletter
+        \newcommand{\needlines}[1]{\par\penalty-100\begingroup
+          \setlength{\dimen@}{#1\baselineskip}\dimen@ii\pagegoal
+          \advance\dimen@ii-\pagetotal
+          \ifdim\dimen@>\dimen@ii\ifdim\dimen@ii>\z@\vfil\fi
+          \penalty-\@M\fi\endgroup}
+        \makeatother
 bibliography: references.bib
 link-citations: true
 ---
@@ -104,62 +112,63 @@ The code used to download, prepare, and analyze the data is available at
 
 # Abstract {.unnumbered}
 
-Doubling a runner's halfway time is an easy way to estimate a marathon
-finishing time. It assumes that the runner will take the same amount of time
-for both halves. I examined how well this rule worked for the 2023 Boston
-Marathon, using official results available through the SCORE Network Sports
-Data Repository [@fay2023boston]. After excluding finishers without a halfway
-split, the analysis included `r fmt(n_analysis, 0)` runners. I fitted a simple
-linear regression with net finishing time as the response and half-marathon
-split as the predictor, both measured in minutes. The estimated slope was
-`r fmt(b1, 3)`, with a conventional 95% confidence interval of
-`r fmt(slope_classical$conf_low, 3)` to `r fmt(slope_classical$conf_high, 3)`.
-This is above the slope of 2 implied by equal times for the two halves. About
-`r fmt(pct_positive, 0)`% of the runners took longer in the second half, so
-doubling the split underestimated their actual finish. The model's residual
-standard deviation was `r fmt(fit_summary$sigma, 2)` minutes, and the errors
-were more spread out for runners with longer splits. Robust standard errors and
-a log-log model supported the same pacing conclusion.
+Doubling a runner's halfway time is a common way to project a marathon finish,
+but it assumes that the two halves take equal time. Using official results for
+`r fmt(n_analysis, 0)` finishers of the 2023 Boston Marathon [@fay2023boston],
+I fitted a simple linear regression of net finishing time on half-marathon
+split, both in minutes, and tested whether the slope differs from 2, the value
+implied by equal halves. The estimated slope was `r fmt(b1, 3)` (95% confidence
+interval `r fmt(slope_classical$conf_low, 3)` to
+`r fmt(slope_classical$conf_high, 3)`), so each extra minute at halfway is
+associated with about `r fmt(b1 - 1, 2)` extra minutes in the second half, and
+this held with robust standard errors and a log-log model. As a result,
+doubling underestimated the finish for about `r fmt(pct_positive, 0)`% of
+runners, by about `r fmt(shortfall(90), 0)` minutes on average at a 1:30 split and about
+`r fmt(shortfall(150), 0)` minutes at a 2:30 split. The halfway split predicts
+the average finish well, but an individual runner's finish remains uncertain by
+roughly `r fmt(2 * fit_summary$sigma, 0)` minutes either way, so the fitted
+equation is best used as an estimate of the mean.
 
 # Introduction
 
 If a runner reaches the halfway point of a marathon in 1 hour 45 minutes,
-doubling that time gives a projected finish of 3 hours 30 minutes. However, it works exactly only when the runner completes the second
-half in another 1 hour 45 minutes. Any slowdown after halfway makes the
-projection too optimistic.
+doubling that time gives a projected finish of 3 hours 30 minutes. However, it
+works exactly only when the runner completes the second half in another 1 hour
+45 minutes. Any slowdown after halfway makes the projection too optimistic.
 
 Running the second half more slowly than the first is called a positive split.
 Previous studies have found that positive splits are common in marathons.
 @march2011age and @santoslozano2014influence reported differences in pacing
-across runners of different abilities. March et al. also found that slower and
-less experienced runners tended to slow more. These findings suggest that the
-doubling rule may work better for some runners than for others.
-
-Runners slow down for several reasons, such as using up stored glycogen and
-building up muscle damage. Earlier research found that men slowed more than women
-on average [@deaner2015men], and that warmer conditions were associated with
-larger pacing changes, especially among slower runners [@ely2008effect].
-@smyth2021how examined more severe late-race slowdowns among recreational
-runners. These studies provide useful background, but they do not give one
-finishing-time equation for the field analyzed here.
+across runners of different abilities, and March et al. found that slower and
+less experienced runners tended to slow more. Runners slow down for several
+reasons, such as using up stored glycogen and building up muscle damage.
+Earlier research also found that men slowed more than women on average
+[@deaner2015men], that warmer conditions were associated with larger pacing
+changes, especially among slower runners [@ely2008effect], and that some
+recreational runners have severe late-race slowdowns [@smyth2021how]. These
+studies compare groups of runners, but they do not give one finishing-time
+equation that a runner could use at halfway.
 
 In this paper, I ask two questions. First, how closely does the halfway split
 predict net finishing time in the 2023 Boston Marathon? Second, does the fitted
-slope differ from 2, the value expected if the two halves take equal time?
-
-The benchmark matters. Regression software usually tests whether a slope is
-zero. Here, that is not the main question: the halfway time is already part of
-the finishing time, and a strong positive association is expected. Testing
-against 2 is more useful because it compares the fitted relationship with the
-doubling rule.
+slope differ from 2, the value expected if the two halves take equal time? To
+answer them, I fitted a simple linear regression of net finishing time on
+half-marathon split for the `r fmt(n_analysis, 0)` finishers with a recorded
+split. Regression software usually tests whether a slope is zero, but that is
+not the main question here: the halfway time is already part of the finishing
+time, so a strong positive association is expected. Testing against 2 is more
+useful because it compares the fitted relationship with the doubling rule.
 
 The estimated slope is `r fmt(b1, 3)`. Therefore, an extra minute at halfway is
 associated with about `r fmt(b1, 2)` extra minutes at the finish, including
-about `r fmt(b1 - 1, 2)` extra minutes in the second half. The conventional prediction intervals extend
-about `r fmt(2 * fit_summary$sigma, 0)` minutes on either side of the fitted
-value, and their accuracy varies across the field. The sections below describe
-the data, explain the model and its checks, and then discuss the results and
-their limits.
+about `r fmt(b1 - 1, 2)` extra minutes in the second half. This matters in
+practice: doubling understates the finish, and the shortfall grows for slower
+runners. The conventional prediction intervals extend about
+`r fmt(2 * fit_summary$sigma, 0)` minutes on either side of the fitted value,
+so the equation estimates the average finish better than any one runner's.
+@sec-data describes the data, @sec-methods explains the model and its checks,
+@sec-results presents the results, and @sec-discussion discusses their limits
+and possible extensions.
 
 # Data {#sec-data}
 
@@ -252,9 +261,13 @@ long upper tails. The median split ratio is `r fmt(median_ratio, 3)`: a runner
 at the median of this ratio took about `r fmt(100 * (median_ratio - 1), 1)`%
 longer for the second half.
 
+```{=latex}
+\needlines{14}
+```
+
 ```{r}
 #| label: tbl-summary
-#| tbl-cap: "Summary statistics for the 26,526 finishers with a recorded halfway split. Times are in minutes. The split ratio has no units."
+#| tbl-cap: "Summary statistics for the 26,526 finishers with a recorded halfway split. Times are in minutes. The split ratio has no units. All three times are right skewed, with means above their medians, and the median split ratio of 1.058 means that the typical finisher ran the second half about 6% slower than the first."
 describe_variable <- function(values, label, digits) {
   quartiles <- quantile(values, c(0.25, 0.75))
   data.frame(
@@ -312,7 +325,7 @@ positive split.
 #| label: fig-distributions
 #| fig-width: 6.6
 #| fig-height: 2.3
-#| fig-cap: "Distributions of halfway split, net finishing time, and split ratio. The dashed line in the right panel marks equal times for the two halves. Its horizontal axis is limited to 0.8--1.6; 0.15% of runners fall outside that range. The largest split ratio is 2.524."
+#| fig-cap: "Distributions of halfway split, net finishing time, and split ratio. The dashed line in the right panel marks equal times for the two halves. Its horizontal axis is limited to 0.8--1.6; 0.15% of runners fall outside that range. The largest split ratio is 2.524. Both times have long right tails, and most split ratios are just above 1, so most runners slowed in the second half."
 p1 <- ggplot(run, aes(half_min)) +
   geom_histogram(bins = 50, fill = "grey35", colour = NA) +
   labs(x = "Half-marathon split (min)", y = "Runners")
@@ -351,7 +364,7 @@ about recent performance before race day.
 #| label: fig-relationship
 #| fig-width: 6.0
 #| fig-height: 3.1
-#| fig-cap: "Net finishing time against halfway split before fitting the regression. Transparent points make areas with many runners appear darker. The dashed line represents equal times for the two halves, $y = 2x$."
+#| fig-cap: "Net finishing time against halfway split before fitting the regression. Transparent points make areas with many runners appear darker. The dashed line represents equal times for the two halves, $y = 2x$. Most points lie above the line, and the gap widens for longer splits, which suggests a slope above 2."
 ggplot(run, aes(half_min, finish_min)) +
   geom_point(alpha = 0.05, size = 0.35, colour = "grey25") +
   geom_abline(slope = 2, intercept = 0, linetype = "dashed",
@@ -375,7 +388,8 @@ for positioning the line rather than for describing an actual runner. The
 slope, $\beta_1$, is the expected difference in finishing time associated with
 a one-minute difference in halfway time. The error, $\varepsilon_i$, is the
 difference between runner $i$'s finishing time and the conditional mean
-specified by the model.
+specified by the model. The errors are assumed to be independent and normally
+distributed with mean 0 and constant variance $\sigma^2$.
 
 I estimated the coefficients using ordinary least squares. It chooses the line
 that minimizes
@@ -404,7 +418,8 @@ tested the slope against that benchmark using
 $$H_0: \beta_1 = 2 \qquad \text{versus} \qquad H_1: \beta_1 \neq 2.$$
 The conventional test statistic is
 $$t = \frac{\hat\beta_1 - 2}{SE(\hat\beta_1)},$$
-with $n - 2 = `r fmt(n_analysis - 2, 0)`$ degrees of freedom under the initial
+where $SE(\hat\beta_1)$ is the standard error of the estimated slope, with
+$n - 2 = `r fmt(n_analysis - 2, 0)`$ degrees of freedom under the initial
 model assumptions. This tests the slope component of the equal-pacing
 relationship. A slope of 2 alone would not establish equal pacing because a
 nonzero intercept could still produce a systematic difference between the
@@ -534,7 +549,8 @@ d3 <- ggplot(spread_compare, aes(split, relative_sd, colour = Model, shape = Mod
 (d1 + d2) / d3
 ```
 
-Here, $\gamma_1$ is an elasticity. A 1% increase in halfway time is associated
+Here, $\gamma_0$ is the intercept, $\eta_i$ is the error term, and $\gamma_1$
+is an elasticity. A 1% increase in halfway time is associated
 with approximately a $\gamma_1$% increase in finishing time. Under equal
 pacing,
 $$\log(Y_i) = \log(2) + \log(x_i),$$
@@ -582,9 +598,13 @@ $$\widehat{\text{finish}} = `r fmt(b0, 2)` + `r fmt(b1, 3)` \times
 Both times are in minutes. @tbl-coefs gives the coefficient estimates,
 conventional standard errors, and confidence intervals.
 
+```{=latex}
+\needlines{11}
+```
+
 ```{r}
 #| label: tbl-coefs
-#| tbl-cap: "Ordinary least squares estimates for net finishing time regressed on halfway split. The confidence intervals are conventional 95% intervals. The HC1 interval for the slope is 2.210--2.225."
+#| tbl-cap: "Ordinary least squares estimates for net finishing time regressed on halfway split. The confidence intervals are conventional 95% intervals. The HC1 interval for the slope is 2.210--2.225. The slope of 2.218 is above the equal-pacing value of 2, and both intervals exclude 2."
 coef_table <- data.frame(
   Term = c("Intercept", "Half-marathon split"),
   Estimate = c(b0, b1),
@@ -665,9 +685,13 @@ compares the doubling rule with the fitted model and includes approximate 95%
 prediction intervals for individual runners. The last column is the difference
 between the model projection and the doubling projection.
 
+```{=latex}
+\needlines{15}
+```
+
 ```{r}
 #| label: tbl-predictions
-#| tbl-cap: "Finishing-time projections from five halfway splits. Prediction intervals use the original model's common residual standard deviation and are approximate because error spread changes across the field and the residuals have heavy tails."
+#| tbl-cap: "Finishing-time projections from five halfway splits. Prediction intervals use the original model's common residual standard deviation and are approximate because error spread changes across the field and the residuals have heavy tails. The model adds more time to the doubled split as the halfway time grows, from about 5 to 18 minutes, and each prediction interval is about 37 minutes wide."
 pred_points <- data.frame(half_min = c(90, 105, 120, 135, 150))
 pred_fit <- predict(primary, newdata = pred_points, interval = "prediction")
 
@@ -739,9 +763,13 @@ log-log scale instead of `r fmt(spread_ratio_raw, 1)`-fold on the original
 scale. However, this is a reduction in unequal spread, not its complete
 removal.
 
+```{=latex}
+\needlines{11}
+```
+
 ```{r}
 #| label: tbl-sensitivity
-#| tbl-cap: "Checks of the slope conclusion. The benchmark is 2 on the original scale and 1 on the log-log scale. Slopes and standard errors are rounded for display; the $t$ statistics were computed from unrounded values."
+#| tbl-cap: "Checks of the slope conclusion. The benchmark is 2 on the original scale and 1 on the log-log scale. Slopes and standard errors are rounded for display; the $t$ statistics were computed from unrounded values. In all three versions, the slope is well above its benchmark."
 sens_table <- data.frame(
   Model = c(
     "Original scale, conventional SE",
