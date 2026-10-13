@@ -617,8 +617,7 @@ minutes is in the second half.
 
 The negative intercept should not be interpreted as an actual finishing time. A
 zero-minute halfway split is impossible and is far outside the observed range
-of `r fmt(min(run$half_min), 1)`--`r fmt(max(run$half_min), 1)` minutes. The
-intercept helps place the fitted line through the data.
+of `r fmt(min(run$half_min), 1)`--`r fmt(max(run$half_min), 1)` minutes. 
 
 The model has $R^2 = `r fmt(fit_summary$r.squared, 3)`$, and the correlation
 between halfway and finishing times is
@@ -664,8 +663,7 @@ ggplot(run, aes(half_min, finish_min)) +
 @tbl-predictions gives projected finishing times for five halfway splits. It
 compares the doubling rule with the fitted model and includes approximate 95%
 prediction intervals for individual runners. The last column is the difference
-between the model projection and the doubling projection, rather than the
-actual prediction error for a particular runner.
+between the model projection and the doubling projection.
 
 ```{r}
 #| label: tbl-predictions
@@ -846,8 +844,12 @@ increases.
 # References {.unnumbered}
 
 ```{=latex}
+% Smaller type and tighter spacing so the reference list fits on one page.
 \small
-\ifdefined\cslentryspacingunit\setlength{\cslentryspacingunit}{3pt}\fi
+\ifdefined\CSLReferences
+  \let\origCSLReferences\CSLReferences
+  \renewcommand{\CSLReferences}[2]{\origCSLReferences{#1}{0.25}}
+\fi
 ```
 
 ::: {#refs}
