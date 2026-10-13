@@ -495,10 +495,11 @@ increase. The Breusch--Pagan test also rejects constant variance, with
 $BP = `r fmt(diag$bp_test$statistic, 1)`$ on `r diag$bp_test$parameter` degree
 of freedom and $p < 0.001$ [@breusch1979simple; @zeileis2002lmtest].
 
-**Normality.** A normal quantile-quantile plot is fairly close to the reference
-line in the center, but it departs substantially at both ends. The residuals
-have heavy tails and are right skewed, including some runners who finish much
-later than predicted. With a large data set, slope inference can be less
+**Normality.** The model assumes normally distributed errors. A histogram of
+the residuals is centered near zero, but it is not symmetric: it is right
+skewed, with a long upper tail of runners who finished much later than
+predicted, and both tails are heavier than a normal curve would give. With a
+large data set, slope inference can be less
 sensitive to nonnormal errors under suitable regularity and dependence
 conditions. This does not make the individual errors normal. Prediction
 intervals based on a normal error distribution remain approximations.
@@ -550,7 +551,7 @@ $$\log(Y_i) = \gamma_0 + \gamma_1 \log(x_i) + \eta_i.$$
 #| label: fig-diagnostics
 #| fig-width: 6.6
 #| fig-height: 4.1
-#| fig-cap: "Regression diagnostics. The residual plot shows increasing spread at longer fitted times. The normal Q-Q plot shows heavy tails. The bottom panel gives residual standard deviations within tenths of the halfway-split distribution, relative to the fastest tenth. Spread increases about 2.4-fold on the original scale and 1.4-fold on the log-log scale."
+#| fig-cap: "Regression diagnostics. The residual plot shows increasing spread at longer fitted times. The histogram of residuals is centered near zero but is right skewed, with a long upper tail; its horizontal axis is limited to $-60$ to 90 minutes. The bottom panel gives residual standard deviations within tenths of the halfway-split distribution, relative to the fastest tenth. Spread increases about 2.4-fold on the original scale and 1.4-fold on the log-log scale."
 aug <- diag$augmented
 
 d1 <- ggplot(aug, aes(fitted, resid)) +
@@ -559,12 +560,12 @@ d1 <- ggplot(aug, aes(fitted, resid)) +
   labs(x = "Fitted finishing time (min)", y = "Residual (min)",
        title = "Residuals vs fitted")
 
-qq <- data.frame(sample = aug$std_resid)
-d2 <- ggplot(qq, aes(sample = sample)) +
-  stat_qq(alpha = 0.06, size = 0.3, colour = "grey25") +
-  stat_qq_line(colour = "#B2182B", linewidth = 0.5) +
-  labs(x = "Theoretical quantile", y = "Standardized residual",
-       title = "Normal Q-Q")
+d2 <- ggplot(aug, aes(resid)) +
+  geom_histogram(binwidth = 2, fill = "grey35", colour = NA) +
+  geom_vline(xintercept = 0, colour = "#B2182B", linewidth = 0.5) +
+  coord_cartesian(xlim = c(-60, 90)) +
+  labs(x = "Residual (min)", y = "Runners",
+       title = "Histogram of residuals")
 
 spread_compare <- bind_rows(
   spread_raw %>%
