@@ -67,6 +67,10 @@ diag <- model_diagnostics(primary)
 # HC1 standard errors and 95% confidence intervals for both coefficients.
 estimates <- slope_interval(primary)
 slope_ci <- estimates[estimates$term == "half_min", ]
+# Distance of the slope from 2 in standard errors, and how many times larger
+# the standard error would have to be for the 95% interval to reach 2.
+ses_from_2 <- (b1 - 2) / slope_ci$std_error
+se_factor <- ses_from_2 / qt(0.975, df.residual(primary))
 
 n_analysis <- nrow(run)
 n_finishers <- nrow(all_finishers)
@@ -327,8 +331,11 @@ $\sum_{i=1}^{n} (Y_i - \beta_0 - \beta_1 x_i)^2$, and $\sigma$ by the residual
 standard deviation $\hat\sigma$.
 
 If both halves took the same time for every runner, then $Y_i = 2x_i$, which
-corresponds to $\beta_0 = 0$ and $\beta_1 = 2$. A slope above 2 therefore means
-that runners who reach halfway later also lose more time in the second half. I
+corresponds to $\beta_0 = 0$ and $\beta_1 = 2$. A slope of 2 alone would not
+establish equal pacing, because a nonzero intercept could still produce a
+systematic difference between the halves, so I also compare the whole fitted
+line with the doubling rule. A slope above 2 means that runners who reach
+halfway later also lose more time in the second half. I
 answer the second research question with the 95% confidence interval for
 $\beta_1$, which shows how far the slope is from 2, and by comparing the fitted
 line with the doubling rule at several splits. I used one predictor because the
@@ -351,8 +358,15 @@ reasonable summary of the average relationship over the observed range.
 
 **Independence.** The model treats the errors of different runners as
 unrelated. This is hard to justify fully in a race, because runners may follow
-the same pacing group or respond similarly to course conditions. Dependence of
-this kind can make the usual standard errors too small.
+the same pacing group or respond similarly to course conditions. If so, the
+data hold less independent information than `r fmt(n_analysis, 0)` runners
+suggest, and even the robust standard error in @sec-validation would be too
+small, making the slope's confidence interval too narrow. The slope estimate
+itself would not be biased, and the conclusion would not change: the slope is
+about `r fmt(ses_from_2, 0)` standard errors above 2, so its standard error
+would have to be about `r fmt(se_factor, 0)` times larger before the interval
+reached 2. The prediction intervals describe how far individual runners fall
+from the line, which dependence between runners changes little.
 
 **Constant variance.** This assumption does not hold. The band of residuals
 widens as fitted times increase: the residual standard deviation rises from
