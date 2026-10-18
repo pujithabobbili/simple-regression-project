@@ -13,12 +13,14 @@ time, and does the relationship show that runners pace the two halves of the
 race evenly?
 
 Because even pacing implies that finishing time is exactly twice the halfway
-split, the slope of the regression has a benchmark value of 2. The analysis
-therefore tests the fitted slope against 2 rather than against 0. Fitted to the
-26,526 finishers of the 2023 Boston Marathon with a recorded half-marathon
-split, the slope is 2.218 (95% CI 2.212 to 2.224), so each extra minute taken to
+split, the slope of the regression has a natural reference value of 2. Fitted
+to the 26,526 finishers of the 2023 Boston Marathon with a recorded
+half-marathon split, the slope is 2.218 (95% CI 2.210 to 2.225, using
+heteroskedasticity-consistent standard errors), so each extra minute taken to
 reach halfway is associated with about 1.22 extra minutes over the second half
-rather than the one minute even pacing would require.
+rather than the one minute even pacing would require. Because the spread of
+finishing times grows with the split, the prediction intervals in the report
+are built from runners with similar splits, so they widen for slower runners.
 
 ## Data source and license
 
@@ -68,7 +70,7 @@ simple-regression-project/
 ├── R/
 │   ├── 01-download-data.R           Downloads the results file into data/raw/
 │   ├── 02-prepare-data.R            Cleans and derives variables; writes data/processed/
-│   └── 03-fit-models.R              Model-fitting and diagnostic helper functions
+│   └── 03-fit-models.R              Model fitting, diagnostics, and interval helpers
 ├── report/
 │   ├── paper.qmd                    Source of the report (Quarto)
 │   ├── paper.pdf                    Rendered report (the submitted document)
@@ -94,7 +96,7 @@ shown in the structure above.
 ### Requirements
 
 R (version 4.3.3 was used) with the packages `dplyr`, `readr`, `ggplot2`,
-`patchwork`, `knitr`, `kableExtra`, `sandwich`, and `lmtest`. The report is
+`patchwork`, `knitr`, `kableExtra`, and `sandwich`. The report is
 written in Quarto and is rendered from RStudio, or from the command line with
 `quarto render report/paper.qmd`. Rendering to PDF also requires a LaTeX
 installation, such as TinyTeX:
