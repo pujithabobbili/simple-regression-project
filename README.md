@@ -8,9 +8,9 @@ A simple linear regression study of marathon pacing, prepared for MATH 261A
 
 ## Research question
 
-How accurately does a runner's half-marathon split predict their net finishing
-time, and does the relationship show that runners pace the two halves of the
-race evenly?
+How closely does a runner's half-marathon split predict their net finishing
+time in the 2023 Boston Marathon, and how far does the common rule of doubling
+the halfway time miss, and for whom?
 
 Because even pacing implies that finishing time is exactly twice the halfway
 split, the slope of the regression has a natural reference value of 2. Fitted
@@ -95,7 +95,7 @@ shown in the structure above.
 
 ### Requirements
 
-R (version 4.3.3 was used) with the packages `dplyr`, `readr`, `ggplot2`,
+R (version 4.6.1 was used) with the packages `dplyr`, `readr`, `ggplot2`,
 `patchwork`, `knitr`, `kableExtra`, and `sandwich`. The report is
 written in Quarto and is rendered from RStudio, or from the command line with
 `quarto render report/paper.qmd`. Rendering to PDF also requires a LaTeX
