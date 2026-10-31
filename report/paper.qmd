@@ -127,7 +127,7 @@ split, both in minutes, and compared the slope with 2, the value implied by
 equal halves. The estimated slope was `r fmt(b1, 3)` (95% confidence interval
 `r fmt(slope_ci$conf_low, 3)` to `r fmt(slope_ci$conf_high, 3)`), so each extra
 minute at halfway is associated with about `r fmt(b1 - 1, 2)` extra minutes in
-the second half. Doubling therefore underestimates the average finish, by about
+the second half. Doubling therefore underestimates the average finish by about
 `r fmt(shortfall(90), 0)` minutes at a 1:30 split and about
 `r fmt(shortfall(150), 0)` minutes at a 2:30 split. Because finishing times
 also spread out more for slower runners, a 95% prediction interval for one
@@ -137,7 +137,7 @@ about `r fmt(local_pi$width[5], 0)` minutes wide at 2:30.
 # Introduction
 
 If a runner reaches the halfway point of a marathon in 1 hour 45 minutes,
-doubling that time gives a projected finish of 3 hours 30 minutes. However, it
+doubling that time gives a projected finish of 3 hours 30 minutes. This
 works exactly only when the runner completes the second half in another 1 hour
 45 minutes. Any slowdown after halfway makes the projection too optimistic.
 
@@ -421,9 +421,12 @@ d3 <- ggplot(deciles, aes(mean_split, resid_sd)) +
 (d1 + d2) / d3
 ```
 
-## Model validation {#sec-validation}
+## Model selection and validation {#sec-validation}
 
-The failure of constant variance has two consequences. First, the usual
+I kept the model in its simplest form. Both variables stay in minutes, so the
+slope can be compared directly with 2, and the residual plot shows no clear
+curve, so a quadratic term was not needed. The failure of constant variance
+has two consequences. First, the usual
 standard errors assume one common variance. I therefore computed the standard
 errors and confidence intervals with a heteroskedasticity-consistent (HC1)
 estimator [@zeileis2004sandwich], which lets each runner's residual contribute
@@ -440,7 +443,8 @@ from nearby runners instead. For a split $x_0$, I took the runners whose splits
 lie within 5 minutes of $x_0$ and added the 2.5th and 97.5th percentiles of
 their residuals to $\hat{Y}_0$. These intervals widen where the spread is
 larger and can be longer on the slow side, which matches the right skew of the
-residuals.
+residuals. They leave out the uncertainty in the fitted line itself, which is
+well under a minute at these splits and small next to the spread of runners.
 
 ## Possible extensions to the model
 
@@ -484,7 +488,7 @@ coef_table <- estimates %>%
   transmute(
     Term = c("Intercept", "Half-marathon split"),
     Estimate = formatC(estimate, format = "f", digits = 3),
-    `Std. error (HC1)` = formatC(std_error, format = "g", digits = 3),
+    `Std. error (HC1)` = formatC(std_error, format = "fg", digits = 3, flag = "#"),
     `95% CI` = paste(
       formatC(conf_low, format = "f", digits = 3), "to",
       formatC(conf_high, format = "f", digits = 3)
@@ -593,12 +597,12 @@ For the 2023 Boston finishers, the halfway split predicts the finish closely,
 but not in the way the doubling rule assumes. The fitted slope is
 `r fmt(b1, 3)`, and its confidence interval lies above 2, as expected from how
 common positive splits are: `r fmt(pct_positive, 0)`% of runners ran a slower
-second half. Doubling therefore underestimates the average finish, by about
+second half. Doubling therefore underestimates the average finish by about
 `r fmt(shortfall(90), 0)` minutes for a 1:30 split and about
 `r fmt(shortfall(150), 0)` minutes for a 2:30 split. This agrees with earlier
 findings that slower runners slow more [@march2011age;
-@santoslozano2014influence], and it turns them into one equation that a runner
-can use at halfway.
+@santoslozano2014influence], and it summarizes the pattern in one equation that
+a runner can use at halfway.
 
 The average finish is estimated very precisely, but one runner's finish is not.
 The 95% prediction interval is about `r fmt(local_pi$width[1], 0)` minutes wide
