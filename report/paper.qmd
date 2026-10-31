@@ -186,8 +186,10 @@ runner crosses mats along the course; they do not show what happened between
 the mats.
 
 Since the complete finishing field is observed, the fitted line describes the
-runners in this race directly. I use the confidence intervals as model-based
-measures of uncertainty for similar runners racing under similar conditions.
+runners in this race directly. The confidence intervals require a broader
+interpretation: I use them as model-based measures of uncertainty for similar
+runners racing under similar conditions, rather than as uncertainty from
+sampling the 2023 finishing field.
 Boston also has a selective entry process: most entrants meet a qualifying-time
 standard at an earlier marathon, and others enter through charity programs. Its
 runners are therefore not a random sample of all marathon runners, which limits
