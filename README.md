@@ -4,7 +4,7 @@ A simple linear regression study of marathon pacing, prepared for MATH 261A
 (Regression Theory) Project 1.
 
 - **Author:** Pujitha Bobbili
-- **Date of submission:** September 25, 2026 (Project 1, Version 1)
+- **Date of submission:** October 30, 2026 (Project 1, Version 2)
 
 ## Research question
 
