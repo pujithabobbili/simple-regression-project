@@ -132,7 +132,9 @@ the second half. Doubling therefore underestimates the average finish by about
 `r fmt(shortfall(150), 0)` minutes at a 2:30 split. Because finishing times
 also spread out more for slower runners, a 95% prediction interval for one
 runner is about `r fmt(local_pi$width[1], 0)` minutes wide at a 1:30 split but
-about `r fmt(local_pi$width[5], 0)` minutes wide at 2:30.
+about `r fmt(local_pi$width[5], 0)` minutes wide at 2:30, so the fitted line
+gives a good estimate of the average finish but a less certain one for any
+single runner, especially a slower one.
 
 # Introduction
 
@@ -166,7 +168,9 @@ The estimated slope is `r fmt(b1, 3)`, so the expectation holds: an extra
 minute at halfway is associated with about `r fmt(b1, 2)` extra minutes at the
 finish, including about `r fmt(b1 - 1, 2)` extra minutes in the second half.
 The uncertainty of a projection for one runner also grows with the split, so
-the halfway clock is less informative for slower runners. @sec-data describes
+the halfway clock is less informative for slower runners. This matters because
+runners and spectators use the doubling rule to plan a race, and the rule is
+furthest off for exactly these runners. @sec-data describes
 the data, @sec-methods explains the model and its checks, @sec-results presents
 the results, and @sec-discussion discusses their limits and possible
 extensions.
@@ -329,7 +333,8 @@ runner $i$'s finishing time and the mean for runners with the same split; the
 errors are assumed independent and normal with mean 0 and constant variance
 $\sigma^2$. I estimated $\beta_0$ and $\beta_1$ by ordinary least squares,
 which minimizes the sum of squared vertical distances
-$\sum_{i=1}^{n} (Y_i - \beta_0 - \beta_1 x_i)^2$, and $\sigma$ by the residual
+$\sum_{i=1}^{n} (Y_i - \beta_0 - \beta_1 x_i)^2$; the resulting estimates are
+written $\hat\beta_0$ and $\hat\beta_1$. I estimated $\sigma$ by the residual
 standard deviation $\hat\sigma$.
 
 If both halves took the same time for every runner, then $Y_i = 2x_i$, which
